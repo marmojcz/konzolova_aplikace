@@ -37,7 +37,7 @@ def main_action():
     return action
 
 
-def main():
+def main_app():
     '''Tělo akcí administrátora'''
     cls()
     admin = accesses.Admin(DATABASE_NAME)
@@ -86,4 +86,4 @@ def main():
     exit()
 
 #spusit aplikaci
-main()
+main_app()
