@@ -12,6 +12,14 @@ PRIMARY KEY("klienti_id" AUTOINCREMENT)
 );
 ''',
 """
+CREATE TABLE IF NOT EXISTS smlouvy(
+smlouvy_id INTEGER,
+nazev TEXT,
+popis TEXT,
+PRIMARY KEY(smlouvy_id AUTOINCREMENT)
+);
+""",
+"""
 CREATE TABLE IF NOT EXISTS klienti_smlouvy(
 	klienti_smlouvy_id INTEGER,
 	klient_id INTEGER NOT NULL,
@@ -23,14 +31,6 @@ CREATE TABLE IF NOT EXISTS klienti_smlouvy(
 	REFERENCES klienti(klienti_id)
 	ON DELETE CASCADE
 	);
-""",
-"""
-CREATE TABLE IF NOT EXISTS smlouvy(
-smlouvy_id INTEGER,
-nazev TEXT,
-popis TEXT,
-PRIMARY KEY(smlouvy_id AUTOINCREMENT)
-);
 """,
 "COMMIT TRANSACTION;"
 )
