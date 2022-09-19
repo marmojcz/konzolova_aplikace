@@ -84,6 +84,3 @@ def main_app():
     admin.db_close()
     print(KONEC)
     exit()
-
-#spusit aplikaci
-main_app()
