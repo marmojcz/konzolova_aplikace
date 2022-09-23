@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import hashlib
 import datetime
-from os import listdir as __listdir
 from os import system as __system
 from os import name as __name
-
+from getpass import getpass
 
 def cls() -> None:
     '''Clear console.'''
@@ -74,3 +73,20 @@ def warning(func):
               Tato akce vymaže i všechny smlouvy klienta.''')
         func(*args)
     return wrapper
+
+def chck_emial(user_email = None):
+    while True:
+        print('Apliakce povoluje pouze celojmenné domény. Domény typu "moje_domena" nejsou podporovány.')
+        user_email = input('Zadejte email: ')
+        if '@' in user_email:
+            if '.' in user_email.split('@')[-1]:
+                return user_email
+            else:
+                print('Zadaný email není v požadovaném tvaru.')
+
+def get_hash(salt):
+    while True:
+        passwd_1 = getpass('Zadejte heslo      (z bezpečnostních důvodů heslo nebude vypisováno): ')
+        passwd_2 = getpass('Zadejte heslo znovu(z bezpečnostních důvodů heslo nebude vypisováno): ')
+        if passwd_1 == passwd_2:
+            return hash(passwd_1, salt)

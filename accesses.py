@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-from webbrowser import get
 from database import Database as db
 from utils import *
 
 class User:
     '''The class is intended for user access to data.'''
-    def __init__(self, db_file:str) -> None:
+    def __init__(self, db_file:str, id = None) -> None:
         self.db = db(db_file)
+        self.id = id
         self.insurance_offered = self._insurance_offered()
 
     def __str__(self) -> str:
@@ -19,10 +19,11 @@ class User:
     def get_my_info(self):
         '''The method should return information associated with the
             instance and its link in tables(Client info, detail of valid contracts).'''
-        self.id
-        query = ''' SELECT jmeno, prijmeni, datum_narozeni, telefon
+        query = ''' SELECT jmeno, prijmeni, datum_narozeni, telefon, email
                     FROM klienti
-                    WHERE klienti_id = ?'''
+                    WHERE email LIKE ?'''
+        result = self.db.get_values(query, [self.id])
+        self._print_returned_vals(result)
 
     def db_close(self)-> None:
         '''Closes the connection to the database.'''
@@ -46,18 +47,6 @@ class User:
         result = self.db.get_values(query)
         result = {i[0]:i[1] for i in result}
         return result
-
-    def _chck_client_id(self) -> str:
-        '''Checks the existence of the id_client in the database.'''
-        while True:
-            client_id = input('Zadejte id klienta: ')
-            if client_id.isnumeric():
-                check = self.get_client_by_id(client_id)
-                if check != None:
-                    return client_id
-            else:
-                print('Hodnota muí být číslo!')
-                continue
 
     def get_types_of_insurance(self)-> list:
         '''It prints the names of the provided insurances into the terminal'''
@@ -92,12 +81,21 @@ class Admin(User):
             print('Datum narození.')
             datum_narozeni = self._chck_date(lower=True, chck_today=True, return_date=True)
             telefoni_cislo = self._insert_mobile_number()
-            vals = (jmeno, prijmeni, datum_narozeni, telefoni_cislo)
+            while True:
+                email = chck_emial()
+                if self._chck_email_exists(email):
+                    print('Zadaný email je již vevidenci. Zvolte jiný email.')
+                    continue
+                else:
+                    break
+            passwd_hash = get_hash(email)
+            vals = (jmeno, prijmeni, datum_narozeni, telefoni_cislo, email)
             vals = [i.strip() for i in vals]
             print(vals)
             verification = input('Pro potvrzení napište A, nebo jen zmačkněte Enter pro zrušení: ')
             if verification == 'A':
-                query = '''INSERT INTO klienti (jmeno, prijmeni, datum_narozeni, telefon) VALUES (?,?,?,?)'''
+                self.__set_new_user(email, passwd_hash)
+                query = '''INSERT INTO klienti (jmeno, prijmeni, datum_narozeni, telefon, email) VALUES (?,?,?,?,?)'''
                 self.db.execute(query, vals)
                 self.db.commit()
                 print('Záznam byl úspěšně přidán.')
@@ -105,6 +103,21 @@ class Admin(User):
                 print('Záznam nebyl přidán.')
         except KeyboardInterrupt:
             pass
+
+    def __set_new_user(self, email, hash, admin='0'):
+        self.db.execute(f'INSERT INTO users_auth(users_id, hash_passwd, admin) VALUES(?,?,{admin})' ,[email, hash])
+
+    def _chck_email_exists(self, email):
+        '''If email exists in users return tre, else return false.'''
+        query = '''SELECT users_id FROM users_auth WHERE users_id LIKE ?'''
+        if self.db.get_values(query,[email]) != []:
+            return True
+        else:
+            return False
+
+    def _chck_auth(self, email, passwd):
+        query = 'SELECT * FROM users_auth WHERE users_id LIKE ? AND hash_passwd LIKE ?'
+        return self.db.get_values(query,(email, passwd))
 
     def get_all_clients(self)->list:
         '''Returns a list of all records in the clients table.'''
@@ -148,7 +161,7 @@ class Admin(User):
     def get_my_info(self)->str:
         '''The method should return information associated with
             the instance and its link in tables.'''
-        return 'Jsi administrátor pojišťovny a nemáš účet.'
+        return 'Jsi administrátor pojišťovny nepotřebuješ nesmysl jako je ID. Jsi KING!!!.'
 
     def edit_client_record(self)->None:
         '''Editing a client record.'''
@@ -387,10 +400,24 @@ class Admin(User):
             else:
                 continue
 
+    def _chck_client_id(self, client_id = False) -> str:
+        '''Checks the existence of the id_client in the database.'''
+        while True:
+            if not client_id:
+                client_id = input('Zadejte id klienta: ')
+            else:
+                if client_id.isnumeric():
+                    check = self.get_client_by_id(client_id)
+                    if check != None:
+                        return client_id
+                else:
+                    client_id = False
+                    print('Hodnota muí být číslo!')
+                    continue
+
 def test():
     '''Service function for testing'''
     admin = Admin('pojistovna.db')
-
+    admin.add_new_client()
     admin.db.db_close()
-
 #test()
