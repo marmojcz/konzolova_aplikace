@@ -63,8 +63,8 @@ class Admin(User):
     The class provides administration of the insurance company database.
     '''
 
-    def __init__(self, db_file) -> None:
-        super().__init__(db_file)
+    def __init__(self, db_file, id = None) -> None:
+        super().__init__(db_file, id)
 
     def __str__(self) -> str:
         return f'Admin pro {self.db}'
